@@ -11,24 +11,37 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.create.moviehubnative.Presentation.TabletScreen
 import com.example.movieapp.ui.navigation.NavGraph
 
 
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp
 
     androidx.compose.material3.Scaffold(
         bottomBar = {
-            BottomNavigationBar(navController)
+            if (screenWidth < 600) {
+                BottomNavigationBar(navController)
+            }
+//            BottomNavigationBar(navController)
         }
-    ) {innerPadding ->
+    ) { innerPadding ->
         Modifier.padding(innerPadding)
 
-        NavGraph(navController)
+        if (screenWidth >= 600) {
+            // ✅ Tablet UI (NO NAV GRAPH)
+            TabletScreen()
+        } else {
+            // ✅ Phone UI (Navigation)
+            NavGraph(navController)
+        }
     }
 }
 
@@ -37,7 +50,7 @@ fun BottomNavigationBar(navController: NavHostController) {
     val currentBackStack by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStack?.destination?.route
 
-    NavigationBar{
+    NavigationBar {
         NavigationBarItem(
             icon = { Icon(imageVector = Icons.Default.Home, contentDescription = "Home") },
 
