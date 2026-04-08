@@ -17,7 +17,7 @@ import com.create.moviehubnative.data.local.entity.MovieEntity
         )
     ],
     indices = [
-        Index(value = ["movieId"])  // ✅ Index add kiya
+        Index(value = ["movieId"])  // ✅ Added Index for Foreign Key column "movieId" to improve performance when querying related parts for a movie
     ]
 )
 data class PartEntity(
@@ -26,5 +26,5 @@ data class PartEntity(
     val movieId: String,
     val title: String,
     val watched: Boolean = false,
-    val duration: String = "0"
+    val duration: String = "0",
 )

@@ -17,9 +17,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -48,6 +52,7 @@ import com.create.moviehubnative.ViewModel.MovieListViewModel
 import com.create.moviehubnative.data.local.entity.MovieEntity
 
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MovieListScreen(
     viewModel: MovieListViewModel = hiltViewModel(),
@@ -55,133 +60,165 @@ fun MovieListScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
 
-    Column(
-        modifier = Modifier.padding(all = 8.dp)
+    val refreshState = rememberPullRefreshState(
+        refreshing = state.isLoading,
+        onRefresh = { viewModel.refresh() }
+    )
+
+    // 🔥 ROOT BOX (IMPORTANT)
+    Box(
+        modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .pullRefresh(refreshState)
     ) {
-        // Header
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.primary)
-                .padding(16.dp)
-        ) {
-            Text(
-                text = "🎬 MovieHub",
-                style = MaterialTheme.typography.headlineLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 28.sp,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            )
-            Text(
-                text = "Discover your next favorite movie",
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
-                )
-            )
-        }
 
         Column(
             modifier = Modifier
+                .padding(all = 8.dp)
                 .fillMaxSize()
-                .padding(16.dp)
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            // Search Bar
-            OutlinedTextField(
-                value = state.searchQuery,
-                onValueChange = { viewModel.onSearchQueryChange(it) },
+
+            // Header
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .shadow(4.dp, RoundedCornerShape(12.dp)),
-                placeholder = { Text("Search movies...", color = MaterialTheme.colorScheme.onSurfaceVariant) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp),
-                colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-                )
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Genre Filter Chips
-            if (state.movies.isNotEmpty()) {
+                    .background(MaterialTheme.colorScheme.primary)
+                    .padding(16.dp)
+            ) {
                 Text(
-                    text = "Genres",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    text = "🎬 MovieHub",
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 28.sp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
                 )
-                val genres = viewModel.getAvailableGenres(state.movies)
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(vertical = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(genres) { genre ->
-                        GenreChip(
-                            genre = genre,
-                            selected = genre == state.selectedGenre,
-                            onClick = { viewModel.onGenreChange(genre) }
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "Discover your next favorite movie",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                    )
+                )
             }
 
-            // Movie List
-            if (state.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(
-                        color = MaterialTheme.colorScheme.primary,
-                        strokeWidth = 3.dp
-                    )
-                }
-            } else if (state.filteredMovies.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text("🔍", style = MaterialTheme.typography.headlineLarge)
-                        Spacer(modifier = Modifier.height(12.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+
+                // Search Bar
+                OutlinedTextField(
+                    value = state.searchQuery,
+                    onValueChange = { viewModel.onSearchQueryChange(it) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(4.dp, RoundedCornerShape(12.dp)),
+                    placeholder = {
                         Text(
-                            "No movies found",
-                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
-                        )
-                        Text(
-                            "Try searching with different keywords",
-                            style = MaterialTheme.typography.bodySmall,
+                            "Search movies...",
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    },
+                    leadingIcon = {
+                        Icon(Icons.Default.Search, contentDescription = null)
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Genre Filter Chips
+                if (state.movies.isNotEmpty()) {
+                    Text(
+                        text = "Genres",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    val genres = viewModel.getAvailableGenres(state.movies)
+
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(genres) { genre ->
+                            GenreChip(
+                                genre = genre,
+                                selected = genre == state.selectedGenre,
+                                onClick = { viewModel.onGenreChange(genre) }
+                            )
+                        }
                     }
+
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(state.filteredMovies) { movie ->
-                        MovieCard(
-                            movie = movie,
-                            onClick = { onMovieClick(movie.id) }
+
+                // Movie List
+                if (state.isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.primary,
+                            strokeWidth = 3.dp
                         )
+                    }
+                } else if (state.filteredMovies.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text("🔍", style = MaterialTheme.typography.headlineLarge)
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                "No movies found",
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+                            )
+                            Text(
+                                "Try searching with different keywords",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(state.filteredMovies) { movie ->
+                            MovieCard(
+                                movie = movie,
+                                onClick = { onMovieClick(movie.id) }
+                            )
+                        }
                     }
                 }
             }
         }
+
+        // 🔥 Pull-to-refresh indicator (TOP OVERLAY)
+        PullRefreshIndicator(
+            refreshing = state.isLoading,
+            state = refreshState,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
     }
 }
-
 @Composable
 fun MovieCard(
     movie: MovieEntity,

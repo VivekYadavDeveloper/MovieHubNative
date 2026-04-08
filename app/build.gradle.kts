@@ -44,6 +44,7 @@ dependencies {
 
     // Compose BOM
     implementation(platform(libs.androidx.compose.bom))
+    implementation("androidx.compose.material:material:1.10.6")
 
     // Core
     implementation(libs.androidx.core.ktx)
@@ -69,6 +70,7 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)  // ADD THIS LINE
     implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.material3)
     ksp(libs.hilt.compiler)
 
     // Room

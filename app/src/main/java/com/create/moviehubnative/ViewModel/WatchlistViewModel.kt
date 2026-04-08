@@ -42,11 +42,22 @@ class WatchlistViewModel @Inject constructor(
         }
     }
 
+    private var lastRemoved: MovieEntity? = null
+
     fun removeFromWatchlist(movieId: String) {
         viewModelScope.launch {
             val movie = _uiState.value.movies.find { it.id == movieId }
             if (movie != null) {
+                lastRemoved = movie
                 repository.toggleWatchlist(movie)
+            }
+        }
+    }
+
+    fun undoRemove() {
+        viewModelScope.launch {
+            lastRemoved?.let {
+                repository.toggleWatchlist(it)
             }
         }
     }

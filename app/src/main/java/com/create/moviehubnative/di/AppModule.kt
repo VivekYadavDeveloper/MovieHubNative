@@ -1,13 +1,10 @@
-package di
+package com.create.moviehubnative.di
 
 import android.content.Context
 import androidx.room.Room
 import com.create.moviehubnative.Local.DB.AppDatabase
 import com.create.moviehubnative.Local.PartDao
-
 import com.create.moviehubnative.data.local.dao.MovieDao
-
-
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

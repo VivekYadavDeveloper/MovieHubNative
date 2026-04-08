@@ -3,17 +3,18 @@ package com.create.moviehubnative.ViewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-
 import com.create.moviehubnative.Repository.MovieRepository
 import com.create.moviehubnative.data.local.entity.MovieEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.collections.filter
+import kotlin.text.contains
 
 data class MovieListUiState(
     val movies: List<MovieEntity> = emptyList(),
@@ -31,13 +32,15 @@ class MovieListViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     private val _selectedGenre = MutableStateFlow("All")
     private val _isLoading = MutableStateFlow(true)
+    private val _refreshTrigger = MutableStateFlow(0)
 
     val uiState: StateFlow<MovieListUiState> = combine(
         repository.getMovies(),
         _searchQuery,
         _selectedGenre,
-        _isLoading
-    ) { movies, query, genre, isLoading ->
+        _isLoading,
+        _refreshTrigger
+    ) { movies, query, genre, isLoading,_ ->
         val filtered = movies.filter { movie ->
             val matchesSearch = movie.title.contains(query, ignoreCase = true)
             val matchesGenre = genre == "All" || movie.genre == genre
@@ -53,7 +56,7 @@ class MovieListViewModel @Inject constructor(
         )
     }.stateIn(
         viewModelScope,
-        kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
+        SharingStarted.WhileSubscribed(5000),
         MovieListUiState()
     )
 
@@ -70,6 +73,19 @@ class MovieListViewModel @Inject constructor(
 
     fun onGenreChange(genre: String) {
         _selectedGenre.value = genre
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            _isLoading.value = true
+
+            // 👇 force combine() re-trigger
+            _refreshTrigger.value++
+
+            kotlinx.coroutines.delay(500) // smooth UX (optional)
+
+            _isLoading.value = false
+        }
     }
 
     fun getAvailableGenres(movies: List<MovieEntity>): List<String> {

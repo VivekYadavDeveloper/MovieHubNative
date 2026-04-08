@@ -28,6 +28,7 @@ materialIconsExtended = "1.6.7"
 composeFoundation = "1.6.7"
 composeRuntime = "1.6.7"
 lifecycleRuntimeCompose = "2.8.1"
+material3 = "1.4.0"
 
 # ============= LIBRARIES =============
 
@@ -80,8 +81,9 @@ androidx-junit = { module = "androidx.test.ext:junit", version.ref = "junitVersi
 androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espressoCore" }
 
 # Coroutines
-kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version = "1.7.3" }
-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.7.3" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version = "1.10.2" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.10.2" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 
 # ============= PLUGINS =============
 
